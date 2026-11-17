@@ -43,10 +43,10 @@ El catálogo integrado funciona desde la primera visita. **Actualizar catálogo*
 
 ### GitHub Pages
 
-1. Crea un repositorio público en GitHub y sube los archivos del proyecto a `main`, incluidas las carpetas `public` y `.github`. `.gitignore` excluye `node_modules` y `dist`.
-2. En **Settings → Pages → Build and deployment → Source**, selecciona **GitHub Actions**.
-3. En **Actions**, ejecuta **Publicar en GitHub Pages** mediante **Run workflow** si el primer push ocurrió antes de activar Pages. Los pushes posteriores a `main` ejecutan el flujo automáticamente.
-4. Abre la URL del entorno `github-pages`. Para un repositorio de proyecto suele ser `https://TU_USUARIO.github.io/TU_REPO/`. La acción calcula `VITE_BASE` para los recursos, el manifiesto y el service worker. [Guía de GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
+1. Usa un repositorio público con GitHub Free o un repositorio público o privado con un plan compatible, como GitHub Pro. El sitio publicado es público aunque el repositorio de origen sea privado. [Disponibilidad de GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+2. Sube los archivos a `main`, incluidas `public` y `.github`. En **Settings → Pages → Build and deployment → Source**, selecciona **GitHub Actions** para habilitar la publicación.
+3. En **Actions**, abre **Publicar en GitHub Pages → Run workflow** si el primer push ocurrió antes de activar Pages. El paso `configure-pages` necesita un sitio Pages habilitado y permiso `pages: read`. El workflow ya declara ese permiso para el job de compilación. Los pushes posteriores a `main` ejecutan el flujo automáticamente. [Guía de GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
+4. Abre la URL del entorno `github-pages`. Para un repositorio de proyecto suele ser `https://TU_USUARIO.github.io/TU_REPO/`. La acción calcula `VITE_BASE` para los recursos, el manifiesto y el service worker.
 
 ### Vercel
 
