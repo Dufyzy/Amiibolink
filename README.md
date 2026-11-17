@@ -21,13 +21,15 @@ PWA gratuita y de código abierto para organizar volcados Amiibo NTAG215 y escri
 ## Usar en el teléfono o en escritorio
 
 1. Abre la URL HTTPS publicada. En Chrome o Edge, el icono de descarga de la cabecera abre el diálogo de instalación cuando el navegador lo ofrece.
-2. En iOS, abre esa misma URL dentro de [Bluefy](https://bluefy.app/) y concede el permiso de Bluetooth. Comprueba **Lista para usar sin conexión** y recarga sin red en Bluefy para verificar la caché de esa versión. En Safari puedes instalar la biblioteca para consultar tus archivos y el catálogo. La conexión BLE de iOS requiere abrir la app dentro de Bluefy.
+2. En iPhone y iPad, abre la URL HTTPS en Bluefy y concédele permiso de Bluetooth. Safari, Chrome y la PWA instalada desde Safari permiten usar la biblioteca, pero carecen de Web Bluetooth. Comprueba **Lista para usar sin conexión** en el navegador que usarás. [Guía de Bluefy](https://bluefy.app/guide.html), [Chrome para iPhone y iPad](https://support.google.com/chrome/answer/6362090?co=GENIE.Platform%3DiOS&hl=es), [estado en WebKit](https://bugs.webkit.org/show_bug.cgi?id=238049)
 3. Pulsa **Importar .bin / .zip** y elige archivos propios. Se admiten volcados NTAG215 de 532, 540 o 572 bytes, incluidos `.bin` en subcarpetas de un ZIP. Los duplicados se detectan por contenido. Cada archivo de la biblioteca se puede descargar en su tamaño original.
 4. Activa el Amiibolink con su botón y pulsa **Conectar Amiibolink**. Selecciona el dispositivo en el diálogo del navegador.
 5. En **Mi biblioteca**, pulsa **Cargar al Emulador**. El progreso llega al 100 % cuando se verifica el ACK final. Tras la escritura, escanea en la consola para comprobar el Amiibo. La sección **Consola BLE** muestra los envíos `TX` y las notificaciones `RX` en hexadecimal.
 6. **Fijo** selecciona el modo de lectura y escritura para conservar el UID en firmware compatible. Selecciona este modo antes de cargar el volcado. **Manual** conserva el UID entre lecturas hasta pulsar el botón físico. **Auto-Random** lo cambia al escanear. El estado del modo se muestra después de recibir su ACK.
 
 La primera visita requiere red para descargar y precargar la app. Los archivos importados se guardan por origen y perfil del navegador. Si cambias de navegador o de dominio, importa tus archivos en el nuevo origen. La duración de la caché depende de la política de almacenamiento del navegador y de si borras los datos del sitio. [Web Bluetooth en Chrome](https://developer.chrome.com/docs/capabilities/bluetooth), [Bluefy](https://bluefy.app/)
+
+Si Bluefy se queda en blanco al usar una IP local, abre primero la misma URL HTTPS en Safari para comprobar que carga sin alertas de certificado. Un certificado de pruebas emitido por una autoridad local requiere instalar su perfil en el iPhone y activar la confianza para SSL. Una URL HTTPS publicada con un certificado público permite omitir ese paso. Cuando la página ya abra en Bluefy, comprueba su permiso de **Bluetooth** en **Ajustes → Privacidad y seguridad**. [Confianza de certificados en iOS](https://support.apple.com/es-es/102390), [permisos del iPhone](https://support.apple.com/es-mx/guide/iphone/iph168c4bbd5/ios)
 
 ### Generar un UID en la app
 

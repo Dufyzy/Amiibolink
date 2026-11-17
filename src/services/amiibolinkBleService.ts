@@ -37,11 +37,17 @@ export class AmiibolinkBleService {
 
   async connect() {
     if (this.state !== 'disconnected' || this.busy) return
+    const bluetooth = navigator.bluetooth
+    const appleMobile = /iPhone|iPad|iPod/.test(navigator.userAgent)
+      || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)
+    if (!bluetooth && appleMobile) {
+      throw new Error('Safari y Chrome para iPhone o iPad no ofrecen Web Bluetooth. Abre la app en Bluefy con una dirección HTTPS de confianza.')
+    }
     if (!window.isSecureContext) throw new Error('Abre la app por HTTPS o en localhost para usar Bluetooth.')
-    if (!navigator.bluetooth) throw new Error('Este navegador no ofrece Web Bluetooth. Usa Chrome, Edge o Bluefy en iOS.')
+    if (!bluetooth) throw new Error('Este navegador no ofrece Web Bluetooth. Usa Chrome o Edge en una computadora, o Chrome en Android.')
     this.changeState('connecting')
     try {
-      const device = await navigator.bluetooth.requestDevice({
+      const device = await bluetooth.requestDevice({
         filters: [{ namePrefix: 'amiibolink' }, { services: [NUS.service] }],
         optionalServices: [NUS.service],
       })

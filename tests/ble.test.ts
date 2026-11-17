@@ -40,6 +40,26 @@ test('uses the Classic V2 read/write, manual and automatic mode codes', () => {
   }
 })
 
+test('explains the iOS browser limitation before giving HTTPS advice', async ({ mock }) => {
+  const windowDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'window')
+  const context = { isSecureContext: false }
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: context })
+  let userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) CriOS/154'
+  mock.getter(navigator, 'userAgent', () => userAgent)
+  const service = new AmiibolinkBleService({ state: () => {}, log: () => {} })
+  try {
+    await assert.rejects(service.connect(), /Safari y Chrome para iPhone o iPad no ofrecen Web Bluetooth/)
+    context.isSecureContext = true
+    await assert.rejects(service.connect(), /Safari y Chrome para iPhone o iPad no ofrecen Web Bluetooth/)
+    context.isSecureContext = false
+    userAgent = 'Mozilla/5.0 (Linux; Android 16) Chrome/154'
+    await assert.rejects(service.connect(), /Abre la app por HTTPS o en localhost/)
+  } finally {
+    if (windowDescriptor) Object.defineProperty(globalThis, 'window', windowDescriptor)
+    else Reflect.deleteProperty(globalThis, 'window')
+  }
+})
+
 test('subscribes before writing, checks ACKs, and disconnects safely on an interrupted write', async () => {
   const input = new Uint8Array(532)
   const states: ConnectionState[] = []
