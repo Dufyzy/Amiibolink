@@ -1,6 +1,6 @@
 # Amiibolink Studio
 
-PWA gratuita y de código abierto para organizar volcados Amiibo NTAG215 y escribirlos por Bluetooth Low Energy en un Amiibolink Clásico con botón y LED. La biblioteca guarda archivos y metadatos en IndexedDB. Workbox precarga la aplicación, las fuentes y las 932 miniaturas del catálogo integrado.
+PWA gratuita y de código abierto para organizar volcados Amiibo NTAG215 y escribirlos por Bluetooth Low Energy en un Amiibolink Clásico con botón y LED. La biblioteca guarda archivos y metadatos en IndexedDB. Workbox precarga la aplicación, las fuentes y el catálogo integrado de 932 fichas.
 
 ## Compilar y probar
 
@@ -37,7 +37,7 @@ En una tarjeta importada, pulsa el icono de huella y selecciona tu propio `key_r
 
 ### Actualizar el catálogo
 
-El catálogo integrado funciona desde la primera visita. **Actualizar catálogo** consulta `https://amiiboapi.org/api/amiibo/` y guarda en IndexedDB los metadatos y las imágenes nuevas que se descarguen. Las fichas anteriores conservan sus miniaturas locales. El endpoint original de `www.amiiboapi.com` devolvió HTTP 404 durante el desarrollo. [Fork activo de AmiiboAPI](https://github.com/8bitDream/AmiiboAPI)
+El catálogo integrado funciona sin conexión tras la primera visita. **Actualizar catálogo** consulta `https://amiiboapi.org/api/amiibo/` y guarda los metadatos en IndexedDB. Al instalar esta versión, la PWA elimina la caché de fotos de versiones anteriores al cerrar todas sus pestañas y abrirla nuevamente. [Fork activo de AmiiboAPI](https://github.com/8bitDream/AmiiboAPI)
 
 ## Publicar gratis por HTTPS
 

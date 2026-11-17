@@ -7,7 +7,7 @@ import { Header } from './components/Header'
 import { useDevice } from './hooks/useDevice'
 import { usePwa } from './hooks/usePwa'
 import { buildCatalog, FEATURED, searchKey, seriesName, syncCatalog, type CatalogEntry, type CatalogUpdate } from './services/catalog'
-import { deleteDump, readCatalogUpdate, readLibrary, saveDumps, type DumpRecord } from './services/dbStorage'
+import { deleteDump, deleteLegacyImageCache, readCatalogUpdate, readLibrary, saveDumps, type DumpRecord } from './services/dbStorage'
 import { createRecord, importFiles } from './services/importFiles'
 import { readUid, toHex } from './services/ntag215Utils'
 
@@ -30,7 +30,7 @@ export default function App() {
   const [filter, setFilter] = useState('')
   const [limit, setLimit] = useState(PAGE_SIZE)
   const [importing, setImporting] = useState(false)
-  const [syncStatus, setSyncStatus] = useState('')
+  const [syncing, setSyncing] = useState(false)
   const [notice, setNotice] = useState<Notice>()
   const [action, setAction] = useState<FileAction>()
   const importer = useRef<HTMLInputElement>(null)
@@ -39,6 +39,7 @@ export default function App() {
 
   useEffect(() => {
     let active = true
+    void deleteLegacyImageCache().catch(() => undefined)
     void readLibrary().then((records) => {
       if (!active) return
       setLibrary(records)
@@ -102,17 +103,14 @@ export default function App() {
   }
 
   async function refreshCatalog() {
-    setSyncStatus('Consultando catálogo…')
+    setSyncing(true)
     try {
-      const result = await syncCatalog((done, total) => setSyncStatus(total ? `Miniaturas ${done}/${total}` : 'Guardando catálogo…'))
-      setUpdate(result.update)
-      setNotice({ text: result.missing
-        ? `Catálogo actualizado. ${result.missing} miniaturas quedaron pendientes.`
-        : 'Catálogo actualizado y disponible sin conexión.', error: result.missing > 0 })
+      setUpdate(await syncCatalog())
+      setNotice({ text: 'Catálogo actualizado y disponible sin conexión.' })
     } catch (error) {
       setNotice({ text: `No se pudo actualizar el catálogo. ${describeError(error)}`, error: true })
     } finally {
-      setSyncStatus('')
+      setSyncing(false)
     }
   }
 
@@ -160,10 +158,10 @@ export default function App() {
               <h2 id="collection-title">{view === 'catalog' ? 'Explorar Amiibo' : 'Mis archivos'}</h2>
               <p>{view === 'catalog' ? 'Identifica figuras y tarjetas de tu colección.' : 'Archivos guardados en este dispositivo.'}</p>
             </div>
-            {view === 'catalog' && <button className="button button-quiet sync-button" type="button" disabled={Boolean(syncStatus)}
+            {view === 'catalog' && <button className="button button-quiet sync-button" type="button" disabled={syncing}
               onClick={() => void refreshCatalog()}>
-              <RefreshCw size={16} aria-hidden="true" className={syncStatus ? 'spin' : undefined} />
-              <span>{syncStatus || 'Actualizar catálogo'}</span>
+              <RefreshCw size={16} aria-hidden="true" className={syncing ? 'spin' : undefined} />
+              <span>{syncing ? 'Consultando catálogo…' : 'Actualizar catálogo'}</span>
             </button>}
           </div>
 

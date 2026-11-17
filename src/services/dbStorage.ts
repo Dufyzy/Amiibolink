@@ -10,7 +10,6 @@ export interface DumpRecord {
 
 const dumps = createStore('amiibolink-library', 'dumps')
 const metadata = createStore('amiibolink-metadata', 'catalog')
-const images = createStore('amiibolink-images', 'thumbs')
 
 export const readLibrary = () => values<DumpRecord>(dumps)
 export const deleteDump = (key: string) => del(key, dumps)
@@ -36,5 +35,7 @@ export async function saveDumps(records: DumpRecord[]) {
 
 export const readCatalogUpdate = <T>() => get<T>('update', metadata)
 export const saveCatalogUpdate = <T>(update: T) => set('update', update, metadata)
-export const readImage = (url: string) => get<Blob>(url, images)
-export const saveImage = (url: string, image: Blob) => set(url, image, images)
+
+export async function deleteLegacyImageCache() {
+  await promisifyRequest(indexedDB.deleteDatabase('amiibolink-images'))
+}

@@ -59,7 +59,7 @@ button:disabled { cursor: default; }
 .hero {
   position: relative;
   isolation: isolate;
-  min-height: 326px;
+  min-height: 280px;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -74,14 +74,12 @@ button:disabled { cursor: default; }
 .hero h1 span { color: var(--jade); }
 .hero p { max-width: 28ch; margin-top: 1rem; color: #c4d5c8; font-size: 1.05rem; line-height: 1.45; }
 .offline-label { display: inline-flex; align-items: center; gap: .45rem; margin-top: 1rem; color: var(--jade); font-size: .82rem; font-weight: 670; }
-.showcase { position: absolute; inset: 0 1% 0 33%; pointer-events: none; }
-.showcase-orbit { position: absolute; width: 78%; height: 140%; top: -12%; left: 12%; border: 1px solid #6ca88640; border-radius: 50%; transform: rotate(-33deg) scaleY(.75); }
-.orbit-outer { inset: -21% 0 auto 4%; width: 94%; height: 158%; border-color: #91dbab24; }
-.orbit-inner { inset: 0 0 auto 21%; width: 59%; height: 118%; border-style: dashed; border-color: #91dbab38; }
-.showcase img { position: absolute; bottom: 7.5%; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 15px 12px #08130fbd); }
-.showcase-zelda { left: 7%; width: 31%; height: 66%; transform: rotate(-5deg); }
-.showcase-ganondorf { right: 5%; width: 35%; height: 79%; transform: rotate(6deg); }
-.showcase-link { left: 27%; width: 47%; height: 92%; z-index: 1; }
+.hero-signal { position: absolute; right: 11%; top: 50%; width: clamp(190px, 29vw, 355px); aspect-ratio: 1; display: grid; place-items: center; transform: translateY(-50%); pointer-events: none; border: 1px solid #82b89730; border-radius: 50%; }
+.hero-signal::before, .hero-signal::after { content: ''; position: absolute; border: 1px solid #82b89740; border-radius: 50%; }
+.hero-signal::before { inset: 12%; }
+.hero-signal::after { inset: -12%; border-color: #82b89720; }
+.hero-chip { display: grid; place-items: center; width: 42%; aspect-ratio: 1; border: 1px solid #609475; border-radius: 22%; color: var(--jade); background: #203b2d; }
+.hero-chip svg { width: 47%; height: auto; }
 
 .device-strip { display: flex; min-height: 68px; align-items: center; gap: 1rem; padding: .65rem 0; border-bottom: 1px solid var(--line); }
 .device-label { font-weight: 740; font-size: .91rem; white-space: nowrap; }
@@ -115,11 +113,11 @@ button:disabled { cursor: default; }
 
 .figure-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .9rem; }
 .amiibo-card { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
-.figure-media { display: grid; height: clamp(125px, 15vw, 188px); place-items: center; padding: .75rem .6rem .45rem; background: radial-gradient(ellipse at 50% 68%, #30473b, #1a2921 74%); border-bottom: 1px solid var(--line); }
-.figure-media-card { background: radial-gradient(ellipse at 50% 66%, #3c4234, #222e25 76%); }
-.figure-media img { width: 100%; height: 100%; max-height: 100%; min-height: 0; object-fit: contain; filter: drop-shadow(0 8px 8px #0b1710a6); }
-.figure-placeholder { color: #a5b9ac; }
 .figure-info { padding: .9rem .9rem .83rem; }
+.figure-heading { display: flex; align-items: start; gap: .62rem; }
+.figure-heading > div { min-width: 0; overflow-wrap: anywhere; }
+.figure-icon { display: grid; flex: none; width: 39px; height: 39px; place-items: center; border-radius: 8px; color: var(--jade); background: #253b30; }
+.figure-icon-card { color: #edd4a4; background: #423a2b; }
 .figure-series, .figure-filename { color: var(--muted); font-size: .79rem; }
 .figure-info h3 { margin-block: .18rem .45rem; font: 720 1.05rem/1.2 var(--font-display); letter-spacing: -.015em; overflow-wrap: anywhere; }
 .figure-id { color: #b2c9be; font: .7rem/1.4 ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
@@ -179,7 +177,7 @@ button:disabled { cursor: default; }
 
 @media (max-width: 850px) {
   .hero { padding-inline: 2rem; }
-  .showcase { inset-inline: 36% 0; }
+  .hero-signal { right: 7%; }
   .search-field input, .select-field select { width: 100%; }
   .filters { flex: 1; min-width: 0; }
   .search-field, .select-field { min-width: 0; }
@@ -195,13 +193,11 @@ button:disabled { cursor: default; }
   .connection { font-size: .76rem; }
   .connect-button { font-size: .79rem; padding-inline: .64rem; }
   .wordmark { font-size: 1.09rem; gap: .45rem; }
-  .hero { min-height: 242px; margin-top: .9rem; padding: 1.2rem; }
+  .hero { min-height: 222px; margin-top: .9rem; padding: 1.2rem; }
   .hero h1 { font-size: clamp(2.75rem, 9vw, 3.55rem); }
   .hero p { max-width: 22ch; font-size: .87rem; }
   .offline-label { font-size: .74rem; margin-top: .7rem; }
-  .showcase { right: -13%; left: 44%; }
-  .showcase-zelda, .showcase-ganondorf { display: none; }
-  .showcase-link { width: 82%; left: 0; height: 81%; bottom: 4%; }
+  .hero-signal { right: -7%; top: 56%; width: clamp(142px, 48vw, 215px); }
   .device-strip { display: grid; justify-items: start; gap: .35rem; padding-block: .65rem; }
   .device-label { font-size: .83rem; white-space: normal; }
   .device-strip p { font-size: .76rem; }
@@ -218,7 +214,9 @@ button:disabled { cursor: default; }
   .figure-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
   .figure-info { padding: .7rem .65rem; }
   .figure-info h3 { font-size: 1rem; }
-  .figure-media { height: clamp(118px, 29vw, 170px); }
+  .figure-heading { gap: .45rem; }
+  .figure-icon { width: 30px; height: 30px; }
+  .figure-icon svg { width: 17px; height: 17px; }
   .upload-button { font-size: .76rem; padding-inline: .35rem; }
   .import-fab { right: calc(.85rem + env(safe-area-inset-right)); bottom: calc(.85rem + env(safe-area-inset-bottom)); }
 }
@@ -228,7 +226,6 @@ button:disabled { cursor: default; }
   .top-actions .install-button { width: 44px; order: 2; }
   .connect-button { margin-left: auto; }
   .hero p { max-width: 19ch; }
-  .showcase-link { width: 83%; left: 5%; height: 76%; }
   .collection-heading .sync-button { margin-left: -.6rem; }
   .view-tab { min-width: 0; padding-inline: .45rem; font-size: .82rem; }
   .segmented button { padding-inline: .5rem; }

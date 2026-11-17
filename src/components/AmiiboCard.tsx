@@ -1,46 +1,12 @@
-import { useEffect, useState } from 'react'
-import { Check, Download, Fingerprint, Nfc, Trash2, Upload } from 'lucide-react'
+import { Check, CreditCard, Download, Fingerprint, Nfc, Trash2, Upload } from 'lucide-react'
 import type { ActiveTransfer } from '../hooks/useDevice'
 import { seriesName, type CatalogEntry } from '../services/catalog'
-import { readImage, type DumpRecord } from '../services/dbStorage'
+import type { DumpRecord } from '../services/dbStorage'
 
 const STAGE_LABELS = {
   preparing: 'Preparando transferencia',
   sending: 'Enviando datos',
   committing: 'Confirmando grabación',
-}
-
-function FigureImage({ image, type }: { image?: string; type?: string }) {
-  const [src, setSrc] = useState<string>()
-  const [failed, setFailed] = useState(false)
-
-  useEffect(() => {
-    let objectUrl: string | undefined
-    let active = true
-    setSrc(undefined)
-    setFailed(false)
-    if (image?.startsWith('https://')) {
-      void readImage(image).then((blob) => {
-        if (!active || !blob) return
-        objectUrl = URL.createObjectURL(blob)
-        setSrc(objectUrl)
-      }).catch(() => setFailed(true))
-    } else if (image) {
-      setSrc(`${import.meta.env.BASE_URL}${image}`)
-    }
-    return () => {
-      active = false
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
-    }
-  }, [image])
-
-  return (
-    <div className={`figure-media ${type === 'Card' ? 'figure-media-card' : ''}`}>
-      {src && !failed
-        ? <img src={src} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} />
-        : <Nfc className="figure-placeholder" size={54} strokeWidth={1.1} aria-hidden="true" />}
-    </div>
-  )
 }
 
 interface AmiiboCardProps {
@@ -59,13 +25,21 @@ export function AmiiboCard({ entry, dump, transfer, sent, canSend, onUpload, onD
   const name = entry?.name || dump?.filename || 'Amiibo sin identificar'
   const id = entry?.id ?? dump?.amiiboId
   const detail = entry ? seriesName(entry.series) : 'Sin coincidencia en el catálogo'
+  const isCard = entry?.type === 'Card'
+  const TypeIcon = isCard ? CreditCard : Nfc
 
   return (
     <article className="amiibo-card" aria-label={name}>
-      <FigureImage image={entry?.image} type={entry?.type} />
       <div className="figure-info">
-        <p className="figure-series">{detail}</p>
-        <h3>{name}</h3>
+        <div className="figure-heading">
+          <span className={`figure-icon${isCard ? ' figure-icon-card' : ''}`} aria-hidden="true">
+            <TypeIcon size={20} strokeWidth={1.6} />
+          </span>
+          <div>
+            <p className="figure-series">{detail}</p>
+            <h3>{name}</h3>
+          </div>
+        </div>
         <p className="figure-id">{id?.toUpperCase()}</p>
         {dump && (
           <>

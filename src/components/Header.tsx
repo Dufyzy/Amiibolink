@@ -1,4 +1,4 @@
-import { Bluetooth, Download, Fingerprint, LockKeyhole, Radio, Shuffle, WifiOff } from 'lucide-react'
+import { Bluetooth, Download, Fingerprint, LockKeyhole, Nfc, Radio, Shuffle, WifiOff } from 'lucide-react'
 import type { useDevice } from '../hooks/useDevice'
 
 type HeaderProps = {
@@ -45,13 +45,8 @@ export function Header({ device, offlineReady, canInstall, onInstall }: HeaderPr
               {offlineReady ? 'Lista para usar sin conexión' : 'Biblioteca local'}
             </span>
           </div>
-          <div className="showcase" aria-hidden="true">
-            <div className="showcase-orbit" />
-            <div className="showcase-orbit orbit-outer" />
-            <div className="showcase-orbit orbit-inner" />
-            <img className="showcase-zelda" src={`${import.meta.env.BASE_URL}showcase/zelda.webp`} alt="" />
-            <img className="showcase-ganondorf" src={`${import.meta.env.BASE_URL}showcase/ganondorf.webp`} alt="" />
-            <img className="showcase-link" src={`${import.meta.env.BASE_URL}showcase/link.webp`} alt="" fetchPriority="high" />
+          <div className="hero-signal" aria-hidden="true">
+            <span className="hero-chip"><Nfc strokeWidth={1.2} /></span>
           </div>
         </section>
 
