@@ -41,6 +41,10 @@ La biblioteca muestra los `.bin` importados. Usa el ID de cada volcado para busc
 
 Para añadir una portada automáticamente, selecciona en el mismo lote `Link.bin` y `Link.png`, o colócalos en la misma carpeta dentro de un ZIP. Se admiten imágenes JPG, PNG y WebP de hasta 8 MiB, con un máximo de 64 MiB de portadas por lote. También puedes añadir, cambiar o quitar una portada desde la ficha. Las portadas se guardan en el dispositivo y están disponibles sin conexión.
 
+Si el ZIP contiene las claves `key_retail.bin`, `locked-secret.bin`, `unfixed-info.bin` o un paquete `ally-all-in-*.bin`, el importador cuenta esos archivos como auxiliares omitidos. Los volcados individuales se validan por separado.
+
+Con conexión, pulsa **Buscar portadas en AmiiboAPI** para completar las fichas sin portada. La búsqueda usa el ID de ocho bytes del volcado para distinguir Amiibo con el mismo nombre y consulta cada ID una vez por búsqueda. Las portadas se descargan directamente del repositorio de imágenes y se guardan en el navegador. Puedes detener la búsqueda y retomarla sin reemplazar las portadas guardadas. [AmiiboAPI](https://github.com/8bitDream/AmiiboAPI)
+
 ## Publicar gratis por HTTPS
 
 ### GitHub Pages

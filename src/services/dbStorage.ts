@@ -23,6 +23,23 @@ export function setDumpCover(key: string, cover?: CoverData) {
   }, dumps)
 }
 
+export function saveMissingCovers(keys: string[], cover: CoverData) {
+  return dumps('readwrite', async (store) => {
+    let saved = 0
+    for (const key of keys) {
+      const request = store.get(key)
+      request.onsuccess = () => {
+        const record = request.result as DumpRecord | undefined
+        if (!record || record.cover) return
+        store.put({ ...record, cover }, key)
+        saved++
+      }
+    }
+    await promisifyRequest(store.transaction)
+    return saved
+  })
+}
+
 export async function saveDumps(records: DumpRecord[]) {
   const unique = new Map<string, DumpRecord>()
   for (const record of records) {

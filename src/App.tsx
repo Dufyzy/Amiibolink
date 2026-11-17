@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronDown, CircleAlert, CircleCheck, FolderOpen, ListFilter, Plus, RefreshCw, Search, X } from 'lucide-react'
+import { ChevronDown, CircleAlert, CircleCheck, FolderOpen, ImageDown, ListFilter, Plus, RefreshCw, Search, X } from 'lucide-react'
 import { AmiiboCard } from './components/AmiiboCard'
 import { BleConsole } from './components/BleConsole'
 import { FileDialog, type FileAction } from './components/FileDialog'
 import { Header } from './components/Header'
 import { useDevice } from './hooks/useDevice'
 import { usePwa } from './hooks/usePwa'
+import { downloadMissingCovers, type CoverProgress } from './services/amiiboCovers'
 import { buildCatalog, searchKey, seriesName, type CatalogUpdate } from './services/catalog'
 import { COVER_ACCEPT, readCover } from './services/coverImages'
 import { deleteDump, deleteLegacyImageCache, readCatalogUpdate, readLibrary, saveDumps, setDumpCover, type DumpRecord } from './services/dbStorage'
@@ -28,9 +29,11 @@ export default function App() {
   const [filter, setFilter] = useState('')
   const [limit, setLimit] = useState(PAGE_SIZE)
   const [importing, setImporting] = useState(false)
+  const [coverProgress, setCoverProgress] = useState<CoverProgress>()
   const [notice, setNotice] = useState<Notice>()
   const [action, setAction] = useState<FileAction>()
   const importer = useRef<HTMLInputElement>(null)
+  const coverSearch = useRef<AbortController>(null)
   const { offlineReady, canInstall, install } = usePwa()
   const device = useDevice((text, error) => setNotice({ text, error }))
 
@@ -44,7 +47,10 @@ export default function App() {
     void readCatalogUpdate<CatalogUpdate>().then((stored) => {
       if (active) setUpdate(stored)
     }).catch((error) => { if (active) setNotice({ error: true, text: `No se pudieron leer los datos de identificación. ${describeError(error)}` }) })
-    return () => { active = false }
+    return () => {
+      active = false
+      coverSearch.current?.abort()
+    }
   }, [])
 
   const catalog = useMemo(() => buildCatalog(update), [update])
@@ -83,11 +89,40 @@ export default function App() {
       if (result.added) void navigator.storage?.persist?.().catch(() => undefined)
       const summary = [`${result.added} importados`, `${result.duplicates} duplicados`, `${result.errors.length} con error`]
       if (result.covers) summary.push(result.covers === 1 ? '1 portada asociada' : `${result.covers} portadas asociadas`)
+      if (result.skipped) summary.push(result.skipped === 1 ? '1 auxiliar omitido' : `${result.skipped} auxiliares omitidos`)
       setNotice({ text: summary.join(' · '), error: result.errors.length > 0, details: result.errors })
     } catch (error) {
       setNotice({ text: `No se pudo guardar la importación. ${describeError(error)}`, error: true })
     } finally {
       setImporting(false)
+    }
+  }
+
+  async function findCovers() {
+    if (coverSearch.current) return
+    if (!navigator.onLine) {
+      setNotice({ text: 'Conéctate a internet para buscar portadas en AmiiboAPI.', error: true })
+      return
+    }
+    const controller = new AbortController()
+    coverSearch.current = controller
+    const stop = () => controller.abort()
+    window.addEventListener('offline', stop, { once: true })
+    setNotice(undefined)
+    try {
+      const result = await downloadMissingCovers(library, controller.signal, setCoverProgress)
+      setLibrary(await readLibrary())
+      const summary = [result.saved === 1 ? '1 portada guardada' : `${result.saved} portadas guardadas`]
+      if (controller.signal.aborted) summary.unshift('Búsqueda detenida')
+      if (result.missing) summary.push(`${result.missing} sin portada en AmiiboAPI`)
+      if (result.failed) summary.push(`${result.failed} con error de descarga o guardado`)
+      setNotice({ text: summary.join(' · '), error: result.failed > 0 })
+    } catch (error) {
+      setNotice({ text: `No se pudo completar la búsqueda. ${describeError(error)}`, error: true })
+    } finally {
+      window.removeEventListener('offline', stop)
+      coverSearch.current = null
+      setCoverProgress(undefined)
     }
   }
 
@@ -141,6 +176,19 @@ export default function App() {
               <h2 id="collection-title">Mi biblioteca</h2>
               {library.length > 0 && <p>{library.length} {library.length === 1 ? 'archivo guardado' : 'archivos guardados'} en este dispositivo.</p>}
             </div>
+            {coverProgress ? (
+              <div className="cover-search">
+                <div>
+                  <span>{coverProgress.checked} de {coverProgress.total} revisados</span>
+                  <progress max={coverProgress.total || 1} value={coverProgress.checked} aria-label="Búsqueda de portadas" />
+                </div>
+                <button className="button button-outline" type="button" onClick={() => coverSearch.current?.abort()}>Detener búsqueda</button>
+              </div>
+            ) : library.some(({ cover }) => !cover) && (
+              <button className="button button-outline" type="button" disabled={importing} onClick={() => void findCovers()}>
+                <ImageDown size={17} aria-hidden="true" /> Buscar portadas en AmiiboAPI
+              </button>
+            )}
           </div>
 
           {items.length > 0 && <div className="toolbar">

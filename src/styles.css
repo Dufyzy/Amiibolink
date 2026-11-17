@@ -93,6 +93,9 @@ button:disabled { cursor: default; }
 .collection-heading { display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: .5rem 1rem; margin-bottom: 1.05rem; }
 .collection-heading h2, .empty-state h3, .file-dialog h2 { font: 750 clamp(1.55rem, 3.5vw, 2.2rem)/1.1 var(--font-display); letter-spacing: -.03em; }
 .collection-heading p { margin-top: .28rem; font-size: .9rem; color: var(--muted); }
+.cover-search { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem .7rem; max-width: 100%; }
+.cover-search > div { flex: 1; min-width: 7.5rem; display: grid; gap: .3rem; color: var(--muted); font-size: .79rem; }
+.cover-search progress { width: 100%; height: .4rem; border-radius: 10rem; overflow: hidden; }
 .toolbar { display: flex; margin-bottom: 1rem; }
 .filters { display: flex; gap: .65rem; }
 .search-field, .select-field { display: flex; position: relative; align-items: center; min-height: 48px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--muted); }
