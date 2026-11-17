@@ -18,7 +18,7 @@ const PAGE_SIZE = 12
 const collator = new Intl.Collator('es', { numeric: true })
 
 function describeError(error: unknown) {
-  return error instanceof Error ? error.message : String(error)
+  return error instanceof Error ? error.message : String(error ?? 'El navegador no pudo completar la operación.')
 }
 
 export default function App() {

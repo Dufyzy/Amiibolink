@@ -1,4 +1,5 @@
 import { createStore, del, get, promisifyRequest, update, values } from 'idb-keyval'
+import type { CoverData } from './coverImages'
 
 export interface DumpRecord {
   key: string
@@ -6,7 +7,7 @@ export interface DumpRecord {
   filename: string
   bytes: Uint8Array<ArrayBuffer>
   importedAt: number
-  cover?: Blob
+  cover?: CoverData | Blob
 }
 
 const dumps = createStore('amiibolink-library', 'dumps')
@@ -15,7 +16,7 @@ const metadata = createStore('amiibolink-metadata', 'catalog')
 export const readLibrary = () => values<DumpRecord>(dumps)
 export const deleteDump = (key: string) => del(key, dumps)
 
-export function setDumpCover(key: string, cover?: Blob) {
+export function setDumpCover(key: string, cover?: CoverData) {
   return update<DumpRecord>(key, (record) => {
     if (!record) throw new Error('El archivo ya no está en la biblioteca.')
     return { ...record, cover }

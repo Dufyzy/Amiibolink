@@ -23,10 +23,11 @@ interface AmiiboCardProps {
   onDelete: () => void
 }
 
-function CoverImage({ cover }: { cover: Blob }) {
+function CoverImage({ cover }: { cover: NonNullable<DumpRecord['cover']> }) {
   const [url, setUrl] = useState<string>()
   useEffect(() => {
-    const localUrl = URL.createObjectURL(cover)
+    const blob = cover instanceof Blob ? cover : new Blob([cover.bytes], { type: cover.type })
+    const localUrl = URL.createObjectURL(blob)
     setUrl(localUrl)
     return () => URL.revokeObjectURL(localUrl)
   }, [cover])
