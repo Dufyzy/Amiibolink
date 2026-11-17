@@ -1,6 +1,6 @@
 # Créditos y licencias
 
-- Metadatos del catálogo obtenidos del repositorio de Nevin Vu. La actualización opcional consulta el fork de 8bitDream. [AmiiboAPI](https://github.com/N3evin/AmiiboAPI/tree/6115745c56ff762ce212ced6fbad9ea195d659b3), [fork de 8bitDream](https://github.com/8bitDream/AmiiboAPI), [aviso de AmiiboAPI](public/licenses/amiiboapi.txt)
+- Metadatos de identificación e imagen de Link en la cabecera obtenidos de AmiiboAPI. La imagen representa un producto de Nintendo. [AmiiboAPI](https://github.com/N3evin/AmiiboAPI/tree/6115745c56ff762ce212ced6fbad9ea195d659b3), [aviso de AmiiboAPI](public/licenses/amiiboapi.txt)
 - Iconos de interfaz de Lucide. [Repositorio](https://github.com/lucide-icons/lucide), [aviso de Lucide](public/licenses/lucide.txt)
 - Disposición binaria y firma de `amiiboCrypto.ts` derivadas de amiitool. [Código fuente](https://github.com/socram8888/amiitool), [aviso de amiitool](public/licenses/amiitool.txt)
 - Bricolage Grotesque y DM Sans se empaquetan localmente mediante Fontsource. [Licencia Bricolage Grotesque](public/licenses/bricolage-grotesque.txt), [licencia DM Sans](public/licenses/dm-sans.txt)

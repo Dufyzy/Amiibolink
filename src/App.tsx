@@ -1,18 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Archive, ChevronDown, CircleAlert, CircleCheck, FolderOpen, ListFilter, Plus, RefreshCw, Search, X } from 'lucide-react'
+import { ChevronDown, CircleAlert, CircleCheck, FolderOpen, ListFilter, Plus, RefreshCw, Search, X } from 'lucide-react'
 import { AmiiboCard } from './components/AmiiboCard'
 import { BleConsole } from './components/BleConsole'
 import { FileDialog, type FileAction } from './components/FileDialog'
 import { Header } from './components/Header'
 import { useDevice } from './hooks/useDevice'
 import { usePwa } from './hooks/usePwa'
-import { buildCatalog, FEATURED, searchKey, seriesName, syncCatalog, type CatalogEntry, type CatalogUpdate } from './services/catalog'
-import { deleteDump, deleteLegacyImageCache, readCatalogUpdate, readLibrary, saveDumps, type DumpRecord } from './services/dbStorage'
+import { buildCatalog, searchKey, seriesName, type CatalogUpdate } from './services/catalog'
+import { COVER_ACCEPT, readCover } from './services/coverImages'
+import { deleteDump, deleteLegacyImageCache, readCatalogUpdate, readLibrary, saveDumps, setDumpCover, type DumpRecord } from './services/dbStorage'
 import { createRecord, importFiles } from './services/importFiles'
 import { readUid, toHex } from './services/ntag215Utils'
 
-type View = 'catalog' | 'library'
-type Item = { key: string; entry?: CatalogEntry; dump?: DumpRecord }
 type Notice = { text: string; error?: boolean; details?: string[] }
 
 const PAGE_SIZE = 12
@@ -23,14 +22,12 @@ function describeError(error: unknown) {
 }
 
 export default function App() {
-  const [view, setView] = useState<View>('catalog')
   const [library, setLibrary] = useState<DumpRecord[]>([])
   const [update, setUpdate] = useState<CatalogUpdate>()
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('')
   const [limit, setLimit] = useState(PAGE_SIZE)
   const [importing, setImporting] = useState(false)
-  const [syncing, setSyncing] = useState(false)
   const [notice, setNotice] = useState<Notice>()
   const [action, setAction] = useState<FileAction>()
   const importer = useRef<HTMLInputElement>(null)
@@ -43,25 +40,17 @@ export default function App() {
     void readLibrary().then((records) => {
       if (!active) return
       setLibrary(records)
-      if (records.length) setView('library')
     }).catch((error) => { if (active) setNotice({ error: true, text: `No se pudo abrir la biblioteca. ${describeError(error)}` }) })
     void readCatalogUpdate<CatalogUpdate>().then((stored) => {
       if (active) setUpdate(stored)
-    }).catch((error) => { if (active) setNotice({ error: true, text: `No se pudo leer el catálogo guardado. ${describeError(error)}` }) })
+    }).catch((error) => { if (active) setNotice({ error: true, text: `No se pudieron leer los datos de identificación. ${describeError(error)}` }) })
     return () => { active = false }
   }, [])
 
   const catalog = useMemo(() => buildCatalog(update), [update])
-  const catalogItems = useMemo(() => {
-    const remaining = [...catalog.values()].filter(({ id }) => !FEATURED.includes(id))
-    remaining.sort((left, right) => collator.compare(left.name, right.name))
-    const featured = FEATURED.map((id) => catalog.get(id)).filter((entry): entry is CatalogEntry => Boolean(entry))
-    return [...featured, ...remaining].map((entry): Item => ({ key: entry.id, entry }))
-  }, [catalog])
-
-  const items = useMemo(() => view === 'catalog' ? catalogItems : [...library]
+  const items = useMemo(() => [...library]
     .sort((left, right) => right.importedAt - left.importedAt)
-    .map((dump): Item => ({ key: dump.key, entry: catalog.get(dump.amiiboId), dump })), [view, library, catalog, catalogItems])
+    .map((dump) => ({ entry: catalog.get(dump.amiiboId), dump })), [library, catalog])
 
   const filterOptions = useMemo(() => ({
     franchise: [...new Set(items.flatMap(({ entry }) => entry ? [entry.franchise] : []))].sort(collator.compare),
@@ -72,13 +61,12 @@ export default function App() {
     const words = searchKey(query.trim()).split(/\s+/).filter(Boolean)
     return items.filter(({ entry, dump }) => {
       if (filter && filter !== `franchise:${entry?.franchise}` && filter !== `series:${seriesName(entry?.series ?? '')}`) return false
-      const haystack = searchKey([entry?.name, entry?.franchise, entry?.series, entry?.id, dump?.filename, dump?.amiiboId].join(' '))
+      const haystack = searchKey([entry?.name, entry?.franchise, entry?.series, dump.filename, dump.amiiboId].join(' '))
       return words.every((word) => haystack.includes(word))
     })
   }, [items, query, filter])
 
-  function changeView(next: View) {
-    setView(next)
+  function clearFilters() {
     setQuery('')
     setFilter('')
     setLimit(PAGE_SIZE)
@@ -91,26 +79,15 @@ export default function App() {
     try {
       const result = await importFiles(files)
       setLibrary(await readLibrary())
-      if (result.added || result.duplicates) changeView('library')
+      if (result.added || result.duplicates) clearFilters()
       if (result.added) void navigator.storage?.persist?.().catch(() => undefined)
       const summary = [`${result.added} importados`, `${result.duplicates} duplicados`, `${result.errors.length} con error`]
+      if (result.covers) summary.push(result.covers === 1 ? '1 portada asociada' : `${result.covers} portadas asociadas`)
       setNotice({ text: summary.join(' · '), error: result.errors.length > 0, details: result.errors })
     } catch (error) {
       setNotice({ text: `No se pudo guardar la importación. ${describeError(error)}`, error: true })
     } finally {
       setImporting(false)
-    }
-  }
-
-  async function refreshCatalog() {
-    setSyncing(true)
-    try {
-      setUpdate(await syncCatalog())
-      setNotice({ text: 'Catálogo actualizado y disponible sin conexión.' })
-    } catch (error) {
-      setNotice({ text: `No se pudo actualizar el catálogo. ${describeError(error)}`, error: true })
-    } finally {
-      setSyncing(false)
     }
   }
 
@@ -123,7 +100,7 @@ export default function App() {
     setTimeout(() => URL.revokeObjectURL(url), 10_000)
   }
 
-  async function confirmAction(keys?: File) {
+  async function confirmAction(file?: File) {
     if (!action) return
     if (action.type === 'delete') {
       await deleteDump(action.dump.key)
@@ -131,13 +108,19 @@ export default function App() {
       setNotice({ text: 'Archivo eliminado de la biblioteca.' })
       return
     }
-    if (keys?.size !== 160) throw new Error('El archivo de claves debe tener 160 bytes.')
+    if (action.type === 'cover') {
+      await setDumpCover(action.dump.key, file ? await readCover(file) : undefined)
+      setLibrary(await readLibrary())
+      setNotice({ text: file ? 'Portada guardada en este dispositivo.' : 'Portada eliminada.' })
+      return
+    }
+    if (file?.size !== 160) throw new Error('El archivo de claves debe tener 160 bytes.')
     const { rerollSignedAmiibo } = await import('./services/amiiboCrypto')
-    const privateBytes = new Uint8Array(await keys.arrayBuffer())
+    const privateBytes = new Uint8Array(await file.arrayBuffer())
     try {
       const bytes = await rerollSignedAmiibo(action.dump.bytes, privateBytes)
       const filename = `${action.dump.filename.replace(/\.bin$/i, '')}.uid-${toHex(readUid(bytes))}.bin`
-      await saveDumps([await createRecord(filename, bytes)])
+      await saveDumps([{ ...await createRecord(filename, bytes), cover: action.dump.cover }])
       setLibrary(await readLibrary())
       setNotice({ text: 'Copia firmada con nuevo UID guardada en la biblioteca.' })
     } finally {
@@ -155,25 +138,12 @@ export default function App() {
         <section className="collection" aria-labelledby="collection-title">
           <div className="collection-heading">
             <div>
-              <h2 id="collection-title">{view === 'catalog' ? 'Explorar Amiibo' : 'Mis archivos'}</h2>
-              <p>{view === 'catalog' ? 'Identifica figuras y tarjetas de tu colección.' : 'Archivos guardados en este dispositivo.'}</p>
+              <h2 id="collection-title">Mi biblioteca</h2>
+              {library.length > 0 && <p>{library.length} {library.length === 1 ? 'archivo guardado' : 'archivos guardados'} en este dispositivo.</p>}
             </div>
-            {view === 'catalog' && <button className="button button-quiet sync-button" type="button" disabled={syncing}
-              onClick={() => void refreshCatalog()}>
-              <RefreshCw size={16} aria-hidden="true" className={syncing ? 'spin' : undefined} />
-              <span>{syncing ? 'Consultando catálogo…' : 'Actualizar catálogo'}</span>
-            </button>}
           </div>
 
-          <div className="toolbar">
-            <div className="view-tabs" role="group" aria-label="Vista de la biblioteca">
-              <button type="button" className="view-tab" aria-pressed={view === 'catalog'} onClick={() => changeView('catalog')}>
-                <Archive size={16} aria-hidden="true" /> Catálogo <span>{catalog.size}</span>
-              </button>
-              <button type="button" className="view-tab" aria-pressed={view === 'library'} onClick={() => changeView('library')}>
-                <FolderOpen size={16} aria-hidden="true" /> Mi biblioteca <span>{library.length}</span>
-              </button>
-            </div>
+          {items.length > 0 && <div className="toolbar">
             <div className="filters">
               <label className="search-field">
                 <Search size={18} aria-hidden="true" />
@@ -183,7 +153,7 @@ export default function App() {
                   setLimit(PAGE_SIZE)
                 }} />
               </label>
-              <div className="select-field">
+              {(filterOptions.series.length > 0 || filterOptions.franchise.length > 0) && <div className="select-field">
                 <ListFilter size={17} aria-hidden="true" />
                 <select aria-label="Filtrar por juego o serie" value={filter} onChange={(event) => {
                   setFilter(event.target.value)
@@ -198,9 +168,9 @@ export default function App() {
                   </optgroup>
                 </select>
                 <ChevronDown size={15} aria-hidden="true" className="select-chevron" />
-              </div>
+              </div>}
             </div>
-          </div>
+          </div>}
 
           {notice && <div className={`notice ${notice.error ? 'notice-error' : ''}`}>
             {notice.error ? <CircleAlert size={18} aria-hidden="true" /> : <CircleCheck size={18} aria-hidden="true" />}
@@ -217,14 +187,15 @@ export default function App() {
 
           {filtered.length ? <>
             <div className="figure-grid">
-              {filtered.slice(0, limit).map(({ key, entry, dump }) => (
-                <AmiiboCard key={key} entry={entry} dump={dump} sent={device.lastSuccess === key}
-                  transfer={device.transfer?.key === key ? device.transfer : undefined}
+              {filtered.slice(0, limit).map(({ entry, dump }) => (
+                <AmiiboCard key={dump.key} entry={entry} dump={dump} sent={device.lastSuccess === dump.key}
+                  transfer={device.transfer?.key === dump.key ? device.transfer : undefined}
                   canSend={device.connection === 'connected' && !device.busy}
-                  onUpload={dump ? () => void device.upload(key, dump.bytes, entry?.name || dump.filename) : undefined}
-                  onDownload={dump ? () => download(dump) : undefined}
-                  onReroll={dump ? () => setAction({ type: 'reroll', dump }) : undefined}
-                  onDelete={dump ? () => setAction({ type: 'delete', dump }) : undefined} />
+                  onUpload={() => void device.upload(dump.key, dump.bytes, entry?.name || dump.filename)}
+                  onDownload={() => download(dump)}
+                  onCover={() => setAction({ type: 'cover', dump })}
+                  onReroll={() => setAction({ type: 'reroll', dump })}
+                  onDelete={() => setAction({ type: 'delete', dump })} />
               ))}
             </div>
             {filtered.length > limit && <button className="button button-outline more-button" type="button"
@@ -232,8 +203,8 @@ export default function App() {
           </> : <div className="empty-state">
             {items.length ? <Search size={36} strokeWidth={1.25} /> : <FolderOpen size={36} strokeWidth={1.25} />}
             <h3>{items.length ? 'Sin coincidencias' : 'Tu biblioteca está vacía'}</h3>
-            <p>{items.length ? 'Prueba otro nombre, ID o filtro.' : 'Importa un archivo .bin o un .zip con varios Amiibo.'}</p>
-            {items.length ? <button className="button button-outline" type="button" onClick={() => { setQuery(''); setFilter('') }}>Limpiar filtros</button>
+            <p>{items.length ? 'Prueba otro nombre, ID o filtro.' : 'Importa un .bin o un ZIP con varios. Puedes incluir una portada con el mismo nombre que cada .bin.'}</p>
+            {items.length ? <button className="button button-outline" type="button" onClick={clearFilters}>Limpiar filtros</button>
               : <button className="button button-outline" type="button" disabled={importing} onClick={() => importer.current?.click()}>Importar archivos</button>}
           </div>}
         </section>
@@ -243,7 +214,7 @@ export default function App() {
         </footer>
       </main>
 
-      <input ref={importer} className="hidden" type="file" multiple accept=".bin,.zip,application/zip,application/octet-stream"
+      <input ref={importer} className="hidden" type="file" multiple accept={`.bin,.zip,application/zip,application/octet-stream,${COVER_ACCEPT}`}
         aria-label="Seleccionar archivos Amiibo" onChange={(event) => {
           const files = Array.from(event.target.files ?? [])
           event.target.value = ''

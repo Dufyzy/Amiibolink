@@ -78,8 +78,7 @@ button:disabled { cursor: default; }
 .hero-signal::before, .hero-signal::after { content: ''; position: absolute; border: 1px solid #82b89740; border-radius: 50%; }
 .hero-signal::before { inset: 12%; }
 .hero-signal::after { inset: -12%; border-color: #82b89720; }
-.hero-chip { display: grid; place-items: center; width: 42%; aspect-ratio: 1; border: 1px solid #609475; border-radius: 22%; color: var(--jade); background: #203b2d; }
-.hero-chip svg { width: 47%; height: auto; }
+.hero-link { position: absolute; z-index: 1; bottom: 12%; width: 88%; height: 77%; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 12px 12px #08130fbd); }
 
 .device-strip { display: flex; min-height: 68px; align-items: center; gap: 1rem; padding: .65rem 0; border-bottom: 1px solid var(--line); }
 .device-label { font-weight: 740; font-size: .91rem; white-space: nowrap; }
@@ -94,14 +93,7 @@ button:disabled { cursor: default; }
 .collection-heading { display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: .5rem 1rem; margin-bottom: 1.05rem; }
 .collection-heading h2, .empty-state h3, .file-dialog h2 { font: 750 clamp(1.55rem, 3.5vw, 2.2rem)/1.1 var(--font-display); letter-spacing: -.03em; }
 .collection-heading p { margin-top: .28rem; font-size: .9rem; color: var(--muted); }
-.sync-button { padding-inline: .6rem; }
-.toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem 1rem; margin-bottom: 1rem; }
-.view-tabs { display: flex; gap: .24rem; min-width: 0; padding: 3px; border: 1px solid #2b3d32; border-radius: 10px; background: #111c16; }
-.view-tab { display: inline-flex; min-height: 41px; align-items: center; justify-content: center; gap: .45rem; padding: .5rem .75rem; border-radius: 7px; color: var(--muted); font-size: .89rem; font-weight: 720; white-space: nowrap; }
-.view-tab[aria-pressed='true'] { background: #254132; color: #d0f4db; }
-.view-tab:hover { color: var(--ink); }
-.view-tab span { display: inline-block; padding: .04em .37em; border-radius: 4px; background: #26372d; font-size: .73rem; font-variant-numeric: tabular-nums; }
-.view-tab[aria-pressed='true'] span { background: #365945; }
+.toolbar { display: flex; margin-bottom: 1rem; }
 .filters { display: flex; gap: .65rem; }
 .search-field, .select-field { display: flex; position: relative; align-items: center; min-height: 48px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--muted); }
 .search-field > svg, .select-field > svg:first-child { position: absolute; left: .78rem; pointer-events: none; }
@@ -111,8 +103,10 @@ button:disabled { cursor: default; }
 .select-field select { width: min(20vw, 230px); padding-right: 1.8rem; appearance: none; text-overflow: ellipsis; }
 .select-chevron { position: absolute; right: .65rem; pointer-events: none; }
 
-.figure-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .9rem; }
+.figure-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start; gap: .9rem; }
 .amiibo-card { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); }
+.figure-cover { aspect-ratio: 4 / 3; display: grid; place-items: center; padding: .5rem; border-bottom: 1px solid var(--line); background: #192821; }
+.figure-cover img { display: block; width: 100%; height: 100%; min-height: 0; object-fit: contain; }
 .figure-info { padding: .9rem .9rem .83rem; }
 .figure-heading { display: flex; align-items: start; gap: .62rem; }
 .figure-heading > div { min-width: 0; overflow-wrap: anywhere; }
@@ -123,6 +117,7 @@ button:disabled { cursor: default; }
 .figure-id { color: #b2c9be; font: .7rem/1.4 ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
 .figure-filename { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-top: .6rem; }
 .upload-button { width: 100%; margin-top: .65rem; color: var(--jade); background: #20382b; }
+.cover-button { width: 100%; margin-top: .35rem; padding-inline: .35rem; }
 .card-actions { display: flex; gap: .36rem; margin-top: .58rem; }
 .card-actions .icon-button { flex: 1; min-width: 0; }
 .transfer { display: grid; grid-template-columns: 1fr auto; gap: .25rem .35rem; margin-top: .65rem; color: var(--jade); font-size: .76rem; }
@@ -198,6 +193,7 @@ button:disabled { cursor: default; }
   .hero p { max-width: 22ch; font-size: .87rem; }
   .offline-label { font-size: .74rem; margin-top: .7rem; }
   .hero-signal { right: -7%; top: 56%; width: clamp(142px, 48vw, 215px); }
+  .hero-link { bottom: 7%; height: 84%; }
   .device-strip { display: grid; justify-items: start; gap: .35rem; padding-block: .65rem; }
   .device-label { font-size: .83rem; white-space: normal; }
   .device-strip p { font-size: .76rem; }
@@ -205,10 +201,7 @@ button:disabled { cursor: default; }
   .collection { padding-top: 1.15rem; }
   .collection-heading { align-items: center; margin-bottom: .65rem; }
   .collection-heading p { font-size: .8rem; }
-  .sync-button { font-size: .78rem; }
-  .toolbar { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: .57rem; }
-  .view-tab { flex: 1; min-height: 44px; }
-  .filters { flex: none; gap: .4rem; }
+  .filters { flex: 1; gap: .4rem; }
   .search-field input, .select-field select { font-size: 1rem; }
   .select-field { width: 48%; }
   .figure-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
@@ -217,7 +210,7 @@ button:disabled { cursor: default; }
   .figure-heading { gap: .45rem; }
   .figure-icon { width: 30px; height: 30px; }
   .figure-icon svg { width: 17px; height: 17px; }
-  .upload-button { font-size: .76rem; padding-inline: .35rem; }
+  .upload-button, .cover-button { font-size: .76rem; padding-inline: .35rem; }
   .import-fab { right: calc(.85rem + env(safe-area-inset-right)); bottom: calc(.85rem + env(safe-area-inset-bottom)); }
 }
 
@@ -226,8 +219,6 @@ button:disabled { cursor: default; }
   .top-actions .install-button { width: 44px; order: 2; }
   .connect-button { margin-left: auto; }
   .hero p { max-width: 19ch; }
-  .collection-heading .sync-button { margin-left: -.6rem; }
-  .view-tab { min-width: 0; padding-inline: .45rem; font-size: .82rem; }
   .segmented button { padding-inline: .5rem; }
 }
 

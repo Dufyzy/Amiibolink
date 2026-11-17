@@ -31,7 +31,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{html,js,css,json,woff2,png}'],
+        globPatterns: ['**/*.{html,js,css,json,woff2,png}', 'showcase/link.webp'],
         clientsClaim: true,
         cleanupOutdatedCaches: true,
       },

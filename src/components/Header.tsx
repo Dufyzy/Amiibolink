@@ -1,4 +1,4 @@
-import { Bluetooth, Download, Fingerprint, LockKeyhole, Nfc, Radio, Shuffle, WifiOff } from 'lucide-react'
+import { Bluetooth, Download, Fingerprint, LockKeyhole, Radio, Shuffle, WifiOff } from 'lucide-react'
 import type { useDevice } from '../hooks/useDevice'
 
 type HeaderProps = {
@@ -46,7 +46,7 @@ export function Header({ device, offlineReady, canInstall, onInstall }: HeaderPr
             </span>
           </div>
           <div className="hero-signal" aria-hidden="true">
-            <span className="hero-chip"><Nfc strokeWidth={1.2} /></span>
+            <img className="hero-link" src={`${import.meta.env.BASE_URL}showcase/link.webp`} alt="" fetchPriority="high" />
           </div>
         </section>
 

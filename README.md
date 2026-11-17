@@ -1,6 +1,6 @@
 # Amiibolink Studio
 
-PWA gratuita y de código abierto para organizar volcados Amiibo NTAG215 y escribirlos por Bluetooth Low Energy en un Amiibolink Clásico con botón y LED. La biblioteca guarda archivos y metadatos en IndexedDB. Workbox precarga la aplicación, las fuentes y el catálogo integrado de 932 fichas.
+PWA gratuita y de código abierto para organizar volcados Amiibo NTAG215 y escribirlos por Bluetooth Low Energy en un Amiibolink Clásico con botón y LED. La biblioteca guarda volcados y portadas en IndexedDB. Workbox precarga la aplicación, sus fuentes, la imagen de cabecera y los metadatos de identificación integrados.
 
 ## Compilar y probar
 
@@ -35,9 +35,11 @@ Si Bluefy se queda en blanco al usar una IP local, abre primero la misma URL HTT
 
 En una tarjeta importada, pulsa el icono de huella y selecciona tu propio `key_retail.bin` de 160 bytes, con la clave `unfixed-info` seguida de `locked-secret`. El navegador verifica ambas firmas del original, genera el UID NXP, recalcula BCC0 y BCC1, vuelve a cifrar y firmar el volcado y guarda una copia de 540 bytes. Las claves se leen en memoria. El volcado de origen se conserva.
 
-### Actualizar el catálogo
+### Identificación y portadas locales
 
-El catálogo integrado funciona sin conexión tras la primera visita. **Actualizar catálogo** consulta `https://amiiboapi.org/api/amiibo/` y guarda los metadatos en IndexedDB. Al instalar esta versión, la PWA elimina la caché de fotos de versiones anteriores al cerrar todas sus pestañas y abrirla nuevamente. [Fork activo de AmiiboAPI](https://github.com/8bitDream/AmiiboAPI)
+La biblioteca muestra los `.bin` importados. Usa el ID de cada volcado para buscar su nombre y serie en los metadatos integrados. Cada ficha lleva el botón **Cargar al Emulador**.
+
+Para añadir una portada automáticamente, selecciona en el mismo lote `Link.bin` y `Link.png`, o colócalos en la misma carpeta dentro de un ZIP. Se admiten imágenes JPG, PNG y WebP de hasta 8 MiB, con un máximo de 64 MiB de portadas por lote. También puedes añadir, cambiar o quitar una portada desde la ficha. Las portadas se guardan en el dispositivo y están disponibles sin conexión.
 
 ## Publicar gratis por HTTPS
 
