@@ -6,6 +6,7 @@ import { DUMP_SIZES, getAmiiboId, normalizeDump, toHex } from './ntag215Utils'
 const MAX_DUMP = Math.max(...DUMP_SIZES)
 const MAX_ZIP = 64 * 1024 * 1024
 const MAX_ENTRIES = 10_000
+const ZIP_BATCH_SIZE = 16
 
 function unpack(entry: JSZipObject, maxBytes: number, sizeError: string) {
   return new Promise<Uint8Array<ArrayBuffer>>((resolve, reject) => {
@@ -39,6 +40,10 @@ function basename(name: string) {
   return name.split(/[\\/]/).at(-1) || 'amiibo.bin'
 }
 
+function isAuxiliaryBin(name: string) {
+  return /^(key_retail|locked-secret|unfixed-info|ally-all-in-\d+)\.bin$/i.test(basename(name))
+}
+
 export async function createRecord(filename: string, bytes: Uint8Array<ArrayBuffer>): Promise<DumpRecord> {
   const normalized = normalizeDump(bytes)
   const key = toHex(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)))
@@ -52,12 +57,12 @@ export async function importFiles(files: File[]) {
   const looseCovers = new Map(covers.map((file) => [coverKey(file.name), file]))
   const pairedCovers = new Set<string>()
   let coverBudget = MAX_ZIP
+  let skipped = 0
   const report = (name: string, error: unknown) => {
     errors.push(`${name} · ${error instanceof Error ? error.message : String(error)}`)
   }
 
-  async function addDump(filename: string, bytes: Uint8Array<ArrayBuffer>, loadCover?: () => Promise<Blob>) {
-    const record = await createRecord(filename, bytes)
+  async function addDump(record: DumpRecord, loadCover?: () => Promise<Blob>) {
     if (loadCover) {
       try {
         const image = await loadCover()
@@ -65,7 +70,7 @@ export async function importFiles(files: File[]) {
         record.cover = await readCover(image)
         coverBudget -= image.size
       } catch (error) {
-        report(`${filename} (portada)`, error)
+        report(`${record.filename} (portada)`, error)
       }
     }
     records.push(record)
@@ -73,12 +78,15 @@ export async function importFiles(files: File[]) {
 
   for (const file of files) {
     try {
-      if (/\.bin$/i.test(file.name)) {
+      if (isAuxiliaryBin(file.name)) {
+        skipped++
+      } else if (/\.bin$/i.test(file.name)) {
         const key = coverKey(file.name)
         const cover = looseCovers.get(key)
         if (cover) pairedCovers.add(key)
         if (file.size > MAX_DUMP) throw new Error('El archivo supera los 572 bytes.')
-        await addDump(file.name, new Uint8Array(await file.arrayBuffer()), cover && (async () => cover))
+        const record = await createRecord(file.name, new Uint8Array(await file.arrayBuffer()))
+        await addDump(record, cover && (async () => cover))
       } else if (/\.zip$/i.test(file.name)) {
         if (file.size > MAX_ZIP) throw new Error('El ZIP supera los 64 MiB.')
         const { default: JSZip } = await import('jszip')
@@ -87,17 +95,26 @@ export async function importFiles(files: File[]) {
         const bins = entries.filter((entry) => /\.bin$/i.test(entry.name))
         if (!bins.length) throw new Error('El ZIP no contiene archivos .bin.')
         if (bins.length > MAX_ENTRIES) throw new Error('El ZIP contiene más de 10 000 archivos .bin.')
+        const individual = bins.filter((entry) => !isAuxiliaryBin(entry.name))
+        skipped += bins.length - individual.length
         const images = new Map(entries.filter((entry) => isCoverFilename(entry.name)).map((entry) => [coverKey(entry.name), entry]))
-        for (const entry of bins) {
-          try {
+        for (let offset = 0; offset < individual.length; offset += ZIP_BATCH_SIZE) {
+          const batch = individual.slice(offset, offset + ZIP_BATCH_SIZE)
+          const prepared = await Promise.allSettled(batch.map(async (entry) => {
             const bytes = await unpack(entry, MAX_DUMP, 'El archivo supera los 572 bytes.')
+            return createRecord(entry.name, bytes)
+          }))
+          for (const [index, result] of prepared.entries()) {
+            const entry = batch[index]
+            if (result.status === 'rejected') {
+              report(`${file.name} / ${entry.name}`, result.reason)
+              continue
+            }
             const image = images.get(coverKey(entry.name))
-            await addDump(entry.name, bytes, image && (async () => new Blob([await unpack(
+            await addDump(result.value, image && (async () => new Blob([await unpack(
               image, Math.min(MAX_COVER_BYTES, coverBudget), coverBudget < MAX_COVER_BYTES
                 ? 'Las portadas de este lote superan los 64 MiB.' : 'La portada supera los 8 MiB.',
             )])))
-          } catch (error) {
-            report(`${file.name} / ${entry.name}`, error)
           }
         }
       } else if (!isCoverFilename(file.name)) {
@@ -112,5 +129,5 @@ export async function importFiles(files: File[]) {
     if (!pairedCovers.has(key)) errors.push(`${cover.name} · Importa el .bin del mismo nombre o elige la portada desde su ficha.`)
   }
 
-  return { ...await saveDumps(records), errors }
+  return { ...await saveDumps(records), skipped, errors }
 }
