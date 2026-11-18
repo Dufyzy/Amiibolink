@@ -1,16 +1,22 @@
+import { useRef } from 'react'
 import { Bluetooth, Download, Fingerprint, LockKeyhole, Radio, Shuffle, WifiOff } from 'lucide-react'
 import type { useDevice } from '../hooks/useDevice'
 
 type HeaderProps = {
   device: ReturnType<typeof useDevice>
   offlineReady: boolean
-  canInstall: boolean
-  onInstall: () => void
+  installed: boolean
+  onInstall: () => Promise<boolean>
 }
 
-export function Header({ device, offlineReady, canInstall, onInstall }: HeaderProps) {
+export function Header({ device, offlineReady, installed, onInstall }: HeaderProps) {
+  const installHelp = useRef<HTMLDialogElement>(null)
   const connected = device.connection === 'connected'
   const connecting = device.connection === 'connecting'
+
+  async function handleInstall() {
+    if (!await onInstall()) installHelp.current?.showModal()
+  }
 
   return (
     <header>
@@ -21,8 +27,8 @@ export function Header({ device, offlineReady, canInstall, onInstall }: HeaderPr
             <span>Amiibolink <span className="wordmark-light">Studio</span></span>
           </a>
           <div className="top-actions">
-            {canInstall && <button className="icon-button install-button" type="button" onClick={onInstall}
-              aria-label="Instalar app" title="Instalar app"><Download size={18} /></button>}
+            {!installed && <button className="icon-button install-button" type="button" onClick={() => void handleInstall()}
+              aria-label="Instalar app" title="Instalar app"><Download size={18} aria-hidden="true" /></button>}
             <span role="status" className={`connection ${connected ? 'connection-active' : ''}`}>
               <span className="indicator" aria-hidden="true" />
               {connected ? (device.deviceName || 'Conectado') : connecting ? 'Buscando…' : 'Sin conectar'}
@@ -35,6 +41,17 @@ export function Header({ device, offlineReady, canInstall, onInstall }: HeaderPr
           </div>
         </div>
       </div>
+
+      {!installed && <dialog ref={installHelp} className="file-dialog" aria-labelledby="install-title">
+        <h2 id="install-title">Instalar app</h2>
+        <p>En <strong>Chrome o Edge para computadora</strong>, busca «Instalar» en la barra de direcciones o en el menú del navegador.</p>
+        <p>En <strong>Chrome para Android</strong>, abre el menú y elige «Añadir a pantalla de inicio».</p>
+        <p>En <strong>Safari para iPhone o iPad</strong>, toca «Compartir» y elige «Añadir a pantalla de inicio».
+          Activa «Abrir como app web» si aparece. Para usar Bluetooth, abre la app en Bluefy.</p>
+        <form method="dialog" className="dialog-actions">
+          <button className="button button-primary" type="submit" autoFocus>Entendido</button>
+        </form>
+      </dialog>}
 
       <div className="frame">
         <section className="hero" aria-labelledby="page-title">

@@ -34,7 +34,7 @@ export default function App() {
   const [action, setAction] = useState<FileAction>()
   const importer = useRef<HTMLInputElement>(null)
   const coverSearch = useRef<AbortController>(null)
-  const { offlineReady, canInstall, install } = usePwa()
+  const { offlineReady, installed, install } = usePwa()
   const device = useDevice((text, error) => setNotice({ text, error }))
 
   useEffect(() => {
@@ -166,8 +166,7 @@ export default function App() {
   return (
     <>
       <a className="skip-link" href="#collection">Ir a la biblioteca</a>
-      <Header device={device} offlineReady={offlineReady} canInstall={canInstall}
-        onInstall={() => { void install().catch((error) => setNotice({ error: true, text: describeError(error) })) }} />
+      <Header device={device} offlineReady={offlineReady} installed={installed} onInstall={install} />
 
       <main className="frame" id="collection">
         <section className="collection" aria-labelledby="collection-title">
