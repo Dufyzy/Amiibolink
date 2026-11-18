@@ -47,7 +47,7 @@ El modo se marca como activo cuando el emulador lo confirma. Si una transferenci
 
 Pulsa el **icono de descarga** en la cabecera para instalar la app o crear un acceso directo. Si el navegador ofrece un diálogo de instalación, se abrirá directamente. En los demás casos, verás los pasos para hacerlo desde el menú del navegador.
 
-![Guía de instalación abierta desde el icono de descarga en la versión móvil de Amiibolink Studio](docs/screenshots/instalacion.png)
+![Guía de instalación para móvil que indica usar Bluefy para conectar el Amiibolink por Bluetooth en iPhone o iPad](docs/screenshots/instalacion.png)
 
 En iPhone o iPad, abre la página en Safari y elige **Compartir → Añadir a pantalla de inicio**. Si aparece **Abrir como app web**, actívalo. Para transferir por Bluetooth, usa Bluefy. [Guía de Apple](https://support.apple.com/es-es/guide/iphone/iphea86e5236/ios)
 

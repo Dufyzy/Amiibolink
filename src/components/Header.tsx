@@ -47,7 +47,8 @@ export function Header({ device, offlineReady, installed, onInstall }: HeaderPro
         <p>En <strong>Chrome o Edge para computadora</strong>, busca «Instalar» en la barra de direcciones o en el menú del navegador.</p>
         <p>En <strong>Chrome para Android</strong>, abre el menú y elige «Añadir a pantalla de inicio».</p>
         <p>En <strong>Safari para iPhone o iPad</strong>, toca «Compartir» y elige «Añadir a pantalla de inicio».
-          Activa «Abrir como app web» si aparece. Para usar Bluetooth, abre la app en Bluefy.</p>
+          Activa «Abrir como app web» si aparece.</p>
+        <p>Para conectar el Amiibolink por <strong>Bluetooth en iPhone o iPad</strong>, abre esta página en <strong>Bluefy</strong> y concédele permiso de Bluetooth.</p>
         <form method="dialog" className="dialog-actions">
           <button className="button button-primary" type="submit" autoFocus>Entendido</button>
         </form>
